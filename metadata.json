@@ -1,0 +1,7 @@
+{
+  "name": "CaliberIA",
+  "description": "Asistente de investigación balística basado en IA para identificación de municiones y armas.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

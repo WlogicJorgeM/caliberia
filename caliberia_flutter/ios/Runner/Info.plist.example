@@ -1,0 +1,7 @@
+<!-- Add these keys to your ios/Runner/Info.plist -->
+<!--
+<key>NSCameraUsageDescription</key>
+<string>CaliberIA necesita acceso a la cámara para capturar imágenes de municiones para análisis balístico.</string>
+<key>NSPhotoLibraryUsageDescription</key>
+<string>CaliberIA necesita acceso a la galería para seleccionar imágenes de municiones para análisis.</string>
+-->
