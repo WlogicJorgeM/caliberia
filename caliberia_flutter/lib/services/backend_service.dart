@@ -137,6 +137,52 @@ class BackendService {
     }
   }
 
+  /// Enviar feedback (up/down) para un análisis
+  static Future<bool> sendFeedback(String id, String feedback) async {
+    if (_token == null) return false;
+
+    try {
+      final response = await http
+          .put(
+            Uri.parse('$_baseUrl/api/analysis/feedback/$id'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $_token',
+            },
+            body: jsonEncode({'feedback': feedback}),
+          )
+          .timeout(const Duration(seconds: 10));
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Obtener ejemplos validados para few-shot learning (positivos y negativos)
+  static Future<Map<String, List<Map<String, dynamic>>>> getValidatedExamples() async {
+    try {
+      final response = await http
+          .get(
+            Uri.parse('$_baseUrl/api/analysis/validated-examples'),
+            headers: _token != null
+                ? {'Authorization': 'Bearer $_token'}
+                : {},
+          )
+          .timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {
+          'positives': List<Map<String, dynamic>>.from(data['positives'] ?? []),
+          'negatives': List<Map<String, dynamic>>.from(data['negatives'] ?? []),
+        };
+      }
+      return {'positives': [], 'negatives': []};
+    } catch (_) {
+      return {'positives': [], 'negatives': []};
+    }
+  }
+
   /// Obtener estadísticas
   static Future<Map<String, dynamic>?> getStats() async {
     if (_token == null || _userId == null) return null;

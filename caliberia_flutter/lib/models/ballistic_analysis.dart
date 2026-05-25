@@ -4,9 +4,10 @@ class BallisticAnalysis {
   final int timestamp;
   final String imageBase64;
   final BallisticResults results;
-  final String aiProvider; // 'gemini' o 'ollama'
+  final String aiProvider;
   final int responseTimeMs;
   String notes;
+  String? feedback; // 'up', 'down', o null (pendiente)
 
   BallisticAnalysis({
     required this.id,
@@ -16,7 +17,12 @@ class BallisticAnalysis {
     this.aiProvider = 'unknown',
     this.responseTimeMs = 0,
     this.notes = '',
+    this.feedback,
   });
+
+  bool get needsFeedback => feedback == null;
+  bool get isValidated => feedback == 'up';
+  bool get isRejected => feedback == 'down';
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -26,6 +32,7 @@ class BallisticAnalysis {
         'aiProvider': aiProvider,
         'responseTimeMs': responseTimeMs,
         'notes': notes,
+        'feedback': feedback,
         '_version': 2,
       };
 
@@ -39,6 +46,7 @@ class BallisticAnalysis {
         aiProvider: json['aiProvider'] ?? 'unknown',
         responseTimeMs: json['responseTimeMs'] ?? 0,
         notes: json['notes'] ?? '',
+        feedback: json['feedback'],
       );
 }
 
@@ -61,7 +69,6 @@ class BallisticResults {
     required this.description,
   });
 
-  /// Nivel de confianza legible
   String get confidenceLevel {
     if (confidence >= 0.8) return 'Alta';
     if (confidence >= 0.5) return 'Media';

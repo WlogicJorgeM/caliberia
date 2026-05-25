@@ -9,8 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  # IA
-  google_generative_ai: ^0.4.6
+  # IA & HTTP
   http: ^1.2.1
   # UI & State
   provider: ^6.1.1

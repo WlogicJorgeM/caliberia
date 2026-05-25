@@ -41,8 +41,13 @@ class AnalysisProvider extends ChangeNotifier {
       AppLogger.info('Historial cargado desde almacenamiento local');
     }
     _aiAvailability = await _aiService.checkAvailability();
+    // Cargar Knowledge Base con análisis validados
+    await _aiService.knowledgeBase.loadFromHistory();
+    // Cargar ejemplos para few-shot
+    await _aiService.loadValidatedExamples();
     AppLogger.info(
-        'IA disponible: Gemini=${_aiAvailability['gemini']}, Ollama=${_aiAvailability['ollama']}');
+        'IA disponible: Groq=${_aiAvailability['groq']}, Ollama=${_aiAvailability['ollama']}');
+    AppLogger.info('Knowledge Base: ${_aiService.knowledgeBase.size} entradas');
     notifyListeners();
   }
 
@@ -132,6 +137,34 @@ class AnalysisProvider extends ChangeNotifier {
     _currentAnalysis = null;
     _error = null;
     notifyListeners();
+  }
+
+  /// Enviar feedback (👍/👎) para un análisis
+  Future<void> sendFeedback(String id, String feedback) async {
+    final idx = _history.indexWhere((e) => e.id == id);
+    if (idx != -1) {
+      _history[idx].feedback = feedback;
+      if (_currentAnalysis?.id == id) {
+        _currentAnalysis!.feedback = feedback;
+      }
+      await StorageService.saveHistory(_history);
+      BackendService.sendFeedback(id, feedback);
+
+      // Actualizar Knowledge Base según feedback
+      if (feedback == 'up') {
+        // 👍 → Agregar a la base de conocimiento para futuros matches
+        _aiService.knowledgeBase.addValidated(_history[idx]);
+        _aiService.addLocalPositive(_history[idx].results.toJson());
+      } else {
+        // 👎 → Remover de la base si estaba, agregar como negativo
+        _aiService.knowledgeBase.removeRejected(_history[idx]);
+        _aiService.addLocalNegative(_history[idx].results.toJson());
+      }
+
+      // Recargar ejemplos del backend
+      await _aiService.loadValidatedExamples();
+      notifyListeners();
+    }
   }
 
   String _generateId() =>

@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: caliberia-backend
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DB_HOST
+        value: dpg-d89ratp9rddc739hm0l0-a
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_NAME
+        value: caliberia_1
+      - key: DB_USER
+        value: caliberia_1
+      - key: DB_PASSWORD
+        value: mEByVfUiBkl27MSu6AMGTk6NvhTzrIyK
+      - key: JWT_SECRET
+        value: caliberia_secret_key_2026_thesis
+      - key: PORT
+        value: "3000"

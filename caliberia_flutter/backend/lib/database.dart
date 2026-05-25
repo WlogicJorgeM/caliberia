@@ -54,6 +54,7 @@ class Database {
         ai_provider VARCHAR(50),
         response_time_ms INTEGER,
         notes TEXT DEFAULT '',
+        feedback VARCHAR(10) DEFAULT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     ''');

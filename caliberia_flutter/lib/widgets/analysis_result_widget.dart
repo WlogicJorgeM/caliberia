@@ -7,11 +7,13 @@ import '../theme.dart';
 class AnalysisResultWidget extends StatelessWidget {
   final BallisticAnalysis analysis;
   final void Function(String notes) onSaveNotes;
+  final void Function(String feedback)? onFeedback;
 
   const AnalysisResultWidget({
     super.key,
     required this.analysis,
     required this.onSaveNotes,
+    this.onFeedback,
   });
 
   @override
@@ -67,6 +69,10 @@ class AnalysisResultWidget extends StatelessWidget {
         const SizedBox(height: 12),
         _DataCard(icon: Icons.straighten, label: 'Longitud Estimada', value: r.estimatedLength),
         const SizedBox(height: 20),
+
+        // Feedback buttons (👍/👎)
+        _buildFeedbackSection(),
+        const SizedBox(height: 16),
 
         // Brands
         _buildSection(
@@ -151,6 +157,75 @@ class AnalysisResultWidget extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildFeedbackSection() {
+    final hasFeedback = analysis.feedback != null;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: hasFeedback
+            ? (analysis.isValidated
+                ? AppColors.emerald500.withValues(alpha: 0.1)
+                : AppColors.red500.withValues(alpha: 0.1))
+            : AppColors.amber400.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: hasFeedback
+              ? (analysis.isValidated
+                  ? AppColors.emerald500.withValues(alpha: 0.3)
+                  : AppColors.red500.withValues(alpha: 0.3))
+              : AppColors.amber400.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Column(
+        children: [
+          Text(
+            hasFeedback
+                ? (analysis.isValidated
+                    ? '✅ Análisis validado como correcto'
+                    : '❌ Análisis marcado como incorrecto')
+                : '¿Es correcto este análisis?',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: hasFeedback
+                  ? (analysis.isValidated
+                      ? AppColors.emerald400
+                      : AppColors.red400)
+                  : AppColors.amber400,
+            ),
+          ),
+          if (!hasFeedback) ...[
+            const SizedBox(height: 4),
+            const Text(
+              'Tu feedback mejora la precisión del modelo',
+              style: TextStyle(fontSize: 11, color: AppColors.zinc500),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _FeedbackButton(
+                  icon: Icons.thumb_up,
+                  label: 'Correcto',
+                  color: AppColors.emerald500,
+                  onTap: () => onFeedback?.call('up'),
+                ),
+                const SizedBox(width: 16),
+                _FeedbackButton(
+                  icon: Icons.thumb_down,
+                  label: 'Incorrecto',
+                  color: AppColors.red500,
+                  onTap: () => onFeedback?.call('down'),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -262,6 +337,53 @@ class _DataCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _FeedbackButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _FeedbackButton({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: color.withValues(alpha: 0.5)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 20, color: color),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

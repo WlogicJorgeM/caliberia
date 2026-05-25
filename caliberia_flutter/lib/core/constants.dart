@@ -6,8 +6,8 @@ class AppConstants {
   // AI
   static const int aiTimeoutSeconds = 90;
   static const int aiMaxRetries = 3;
-  static const int maxImageWidth = 1024;
-  static const int imageQuality = 75;
+  static const int maxImageWidth = 800;
+  static const int imageQuality = 60;
   static const int maxImageSizeKB = 500;
 
   // Storage
@@ -20,4 +20,4 @@ class AppConstants {
 }
 
 /// Proveedores de IA disponibles
-enum AIProvider { gemini, ollama, auto }
+enum AIProvider { groq, ollama, auto }

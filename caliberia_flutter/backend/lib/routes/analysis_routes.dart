@@ -15,6 +15,8 @@ class AnalysisRoutes {
     r.get('/history/<userId>', _getHistory);
     r.delete('/delete/<id>', _deleteAnalysis);
     r.put('/notes/<id>', _updateNotes);
+    r.put('/feedback/<id>', _updateFeedback);
+    r.get('/validated-examples', _getValidatedExamples);
     r.get('/stats/<userId>', _getStats);
     return r;
   }
@@ -120,6 +122,80 @@ class AnalysisRoutes {
       return _jsonResponse(200, {'message': 'Notas actualizadas'});
     } catch (e) {
       return _jsonResponse(500, {'error': 'Error al actualizar: $e'});
+    }
+  }
+
+  /// PUT /api/analysis/feedback/:id — Guardar feedback del usuario (up/down)
+  Future<Response> _updateFeedback(Request req, String id) async {
+    try {
+      final body = jsonDecode(await req.readAsString());
+      final feedback = body['feedback'] as String? ?? '';
+      if (feedback != 'up' && feedback != 'down') {
+        return _jsonResponse(400, {'error': 'Feedback debe ser "up" o "down"'});
+      }
+      await db.connection.execute(
+        Sql.named('UPDATE analyses SET feedback = @feedback WHERE id = @id'),
+        parameters: {'id': id, 'feedback': feedback},
+      );
+      return _jsonResponse(200, {'message': 'Feedback guardado'});
+    } catch (e) {
+      return _jsonResponse(500, {'error': 'Error: $e'});
+    }
+  }
+
+  /// GET /api/analysis/validated-examples — Obtener análisis validados (feedback=up) para few-shot
+  Future<Response> _getValidatedExamples(Request req) async {
+    try {
+      // Ejemplos correctos (👍)
+      final positives = await db.connection.execute(
+        Sql.named('''
+          SELECT caliber, ammo_type, compatible_weapon, estimated_length,
+            possible_brands, confidence, description
+          FROM analyses 
+          WHERE feedback = 'up'
+          ORDER BY created_at DESC 
+          LIMIT 5
+        '''),
+      );
+
+      // Ejemplos incorrectos (👎) para contra-ejemplos
+      final negatives = await db.connection.execute(
+        Sql.named('''
+          SELECT caliber, ammo_type, compatible_weapon, estimated_length,
+            possible_brands, confidence, description
+          FROM analyses 
+          WHERE feedback = 'down'
+          ORDER BY created_at DESC 
+          LIMIT 3
+        '''),
+      );
+
+      final positiveExamples = positives.map((row) => {
+            'caliber': row[0],
+            'ammoType': row[1],
+            'compatibleWeapon': row[2],
+            'estimatedLength': row[3],
+            'possibleBrands': row[4],
+            'confidence': row[5],
+            'description': row[6],
+          }).toList();
+
+      final negativeExamples = negatives.map((row) => {
+            'caliber': row[0],
+            'ammoType': row[1],
+            'compatibleWeapon': row[2],
+            'estimatedLength': row[3],
+            'possibleBrands': row[4],
+            'confidence': row[5],
+            'description': row[6],
+          }).toList();
+
+      return _jsonResponse(200, {
+        'positives': positiveExamples,
+        'negatives': negativeExamples,
+      });
+    } catch (e) {
+      return _jsonResponse(500, {'error': 'Error: $e'});
     }
   }
 

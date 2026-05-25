@@ -161,14 +161,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildAIStatusDot(AnalysisProvider provider) {
-    final gemini = provider.aiAvailability['gemini'] ?? false;
+    final groq = provider.aiAvailability['groq'] ?? false;
     final ollama = provider.aiAvailability['ollama'] ?? false;
-    final color = gemini
+    final color = groq
         ? AppColors.emerald400
         : ollama
             ? AppColors.amber400
             : AppColors.red400;
-    final label = gemini ? 'Gemini' : ollama ? 'Ollama' : 'Sin IA';
+    final label = groq ? 'Groq Vision' : ollama ? 'Ollama' : 'Sin IA';
 
     return Tooltip(
       message: 'Motor IA: $label',
@@ -343,7 +343,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildAIInfoCard(AnalysisProvider provider) {
-    final gemini = provider.aiAvailability['gemini'] ?? false;
+    final groq = provider.aiAvailability['groq'] ?? false;
     final ollama = provider.aiAvailability['ollama'] ?? false;
 
     return Container(
@@ -359,16 +359,16 @@ class _HomeScreenState extends State<HomeScreen> {
           const Icon(Icons.psychology, size: 20, color: AppColors.zinc500),
           const SizedBox(height: 8),
           Text(
-            gemini ? 'Gemini' : ollama ? 'Ollama' : 'Sin IA',
+            groq ? 'Groq' : ollama ? 'Ollama' : 'Sin IA',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: gemini || ollama ? AppColors.emerald400 : AppColors.red400,
+              color: groq || ollama ? AppColors.emerald400 : AppColors.red400,
             ),
           ),
           const SizedBox(height: 4),
           Text(
-            gemini
+            groq
                 ? 'Visión real activa'
                 : ollama
                     ? 'Modelo local'
@@ -419,6 +419,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       analysis: provider.currentAnalysis!,
                       onSaveNotes: (notes) => provider.saveNotes(
                           provider.currentAnalysis!.id, notes),
+                      onFeedback: (feedback) => provider.sendFeedback(
+                          provider.currentAnalysis!.id, feedback),
                     ),
                   ],
                 ),
