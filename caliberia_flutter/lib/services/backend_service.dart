@@ -43,6 +43,33 @@ class BackendService {
     }
   }
 
+  /// Registrar nuevo usuario
+  static Future<bool> register(
+      String email, String password, String fullName) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/api/auth/register'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'email': email,
+              'password': password,
+              'fullName': fullName,
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 201) {
+        AppLogger.info('Usuario registrado: $email');
+        return true;
+      }
+      return false;
+    } catch (e) {
+      AppLogger.warning('Error en registro: $e');
+      return false;
+    }
+  }
+
   /// Guardar análisis en PostgreSQL
   static Future<bool> saveAnalysis(BallisticAnalysis analysis) async {
     if (_token == null || _userId == null) return false;
