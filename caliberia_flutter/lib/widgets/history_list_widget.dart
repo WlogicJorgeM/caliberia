@@ -23,7 +23,7 @@ class HistoryListWidget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.access_time, size: 48, color: AppColors.zinc500.withOpacity(0.3)),
+            Icon(Icons.access_time, size: 48, color: AppColors.zinc500.withValues(alpha: 0.3)),
             const SizedBox(height: 16),
             const Text(
               'No hay registros previos',
@@ -67,7 +67,7 @@ class _HistoryTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppColors.zinc900.withOpacity(0.5),
+          color: AppColors.zinc900.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppColors.zinc800),
         ),

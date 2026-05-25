@@ -1,7 +1,7 @@
 {
   "name": "caliberia-flutter",
-  "version": "1.0.0",
-  "description": "CaliberIA - Asistente de investigación balística con IA local (Ollama)",
+  "version": "2.0.0",
+  "description": "CaliberIA - Asistente de investigación balística con IA dual (Gemini + Ollama)",
   "scripts": {
     "install": "C:\\flutter\\bin\\flutter.bat pub get",
     "start": "C:\\flutter\\bin\\flutter.bat run -d chrome --web-port=8080",
@@ -10,6 +10,7 @@
     "analyze": "C:\\flutter\\bin\\flutter.bat analyze",
     "clean": "C:\\flutter\\bin\\flutter.bat clean",
     "devices": "C:\\flutter\\bin\\flutter.bat devices",
+    "test": "C:\\flutter\\bin\\flutter.bat test",
     "ollama:status": "curl -s http://localhost:11434/api/tags",
     "ollama:pull": "ollama pull qwen2.5-coder:1.5b"
   }

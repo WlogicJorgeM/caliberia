@@ -1,0 +1,10 @@
+{
+  "name": "caliberia-backend",
+  "version": "1.0.0",
+  "description": "Backend API para CaliberIA (Dart + PostgreSQL)",
+  "scripts": {
+    "install": "C:\\flutter\\bin\\dart.bat pub get",
+    "start": "C:\\flutter\\bin\\dart.bat run bin/server.dart",
+    "dev": "C:\\flutter\\bin\\dart.bat run bin/server.dart"
+  }
+}

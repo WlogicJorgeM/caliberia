@@ -1,7 +1,7 @@
 name: caliberia
 description: Asistente de investigación balística basado en IA para identificación de municiones y armas.
 publish_to: 'none'
-version: 1.0.0+1
+version: 2.0.0+1
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -9,13 +9,25 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  # IA
+  google_generative_ai: ^0.4.6
   http: ^1.2.1
+  # UI & State
+  provider: ^6.1.1
+  # Media
   image_picker: ^1.0.7
-  camera: ^0.11.0
+  # Storage
   shared_preferences: ^2.2.3
+  flutter_secure_storage: ^9.0.0
+  sqflite: ^2.3.2
+  path: ^1.9.0
+  # Utils
   flutter_dotenv: ^5.1.0
   intl: ^0.19.0
   path_provider: ^2.1.2
+  logger: ^2.0.2+1
+  connectivity_plus: ^6.0.3
+  crypto: ^3.0.3
 
 dev_dependencies:
   flutter_test:

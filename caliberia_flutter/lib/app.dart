@@ -4,17 +4,16 @@ import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'services/storage_service.dart';
 
-class CaliberIAApp extends StatefulWidget {
-  const CaliberIAApp({super.key});
+class CaliberiaApp extends StatefulWidget {
+  const CaliberiaApp({super.key});
 
   @override
-  State<CaliberIAApp> createState() => _CaliberIAAppState();
+  State<CaliberiaApp> createState() => _CaliberiaAppState();
 }
 
-class _CaliberIAAppState extends State<CaliberIAApp> {
-  bool _isLoading = true;
-  bool _isAuthenticated = false;
+class _CaliberiaAppState extends State<CaliberiaApp> {
   String? _user;
+  bool _loading = true;
 
   @override
   void initState() {
@@ -25,25 +24,18 @@ class _CaliberIAAppState extends State<CaliberIAApp> {
   Future<void> _checkSession() async {
     final session = await StorageService.getSession();
     setState(() {
-      _isAuthenticated = session != null;
       _user = session;
-      _isLoading = false;
+      _loading = false;
     });
   }
 
   void _onLogin(String email) {
-    setState(() {
-      _isAuthenticated = true;
-      _user = email;
-    });
+    setState(() => _user = email);
   }
 
   void _onLogout() async {
     await StorageService.clearSession();
-    setState(() {
-      _isAuthenticated = false;
-      _user = null;
-    });
+    setState(() => _user = null);
   }
 
   @override
@@ -51,12 +43,15 @@ class _CaliberIAAppState extends State<CaliberIAApp> {
     return MaterialApp(
       title: 'CaliberIA',
       debugShowCheckedModeBanner: false,
-      theme: buildAppTheme(),
-      home: _isLoading
+      theme: AppTheme.darkTheme,
+      home: _loading
           ? const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
+              backgroundColor: AppColors.zinc950,
+              body: Center(
+                child: CircularProgressIndicator(color: AppColors.emerald500),
+              ),
             )
-          : _isAuthenticated
+          : _user != null
               ? HomeScreen(user: _user!, onLogout: _onLogout)
               : LoginScreen(onLogin: _onLogin),
     );

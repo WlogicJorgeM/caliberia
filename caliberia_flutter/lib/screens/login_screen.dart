@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../theme.dart';
 import '../services/storage_service.dart';
+import '../services/backend_service.dart';
 
 class LoginScreen extends StatefulWidget {
-  final void Function(String email) onLogin;
-
+  final Function(String) onLogin;
   const LoginScreen({super.key, required this.onLogin});
 
   @override
@@ -15,22 +15,20 @@ class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  String? _error;
   bool _isLoading = false;
+  String? _error;
+  bool _obscurePassword = true;
   late AnimationController _animController;
-  late Animation<double> _scaleAnim;
+  late Animation<double> _fadeAnim;
 
   @override
   void initState() {
     super.initState();
     _animController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 800),
     );
-    _scaleAnim = CurvedAnimation(
-      parent: _animController,
-      curve: Curves.easeOutBack,
-    );
+    _fadeAnim = CurvedAnimation(parent: _animController, curve: Curves.easeOut);
     _animController.forward();
   }
 
@@ -43,23 +41,35 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Future<void> _handleSubmit() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      setState(() => _error = 'Complete todos los campos');
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _error = null;
     });
 
-    await Future.delayed(const Duration(milliseconds: 800));
+    // Intentar login con backend (PostgreSQL)
+    final backendUser = await BackendService.login(email, password);
+    if (backendUser != null) {
+      await StorageService.saveSession(email);
+      widget.onLogin(email);
+      return;
+    }
 
-    final email = _emailController.text.trim();
-    final password = _passwordController.text;
-
-    if (email == 'admin@admin.com' && password == '123') {
+    // Fallback: auth local
+    if (StorageService.validateCredentials(email, password)) {
       await StorageService.saveSession(email);
       widget.onLogin(email);
     } else {
       setState(() {
-        _error = 'Credenciales de acceso inválidas';
         _isLoading = false;
+        _error = 'Credenciales de acceso inválidas';
       });
     }
   }
@@ -67,84 +77,95 @@ class _LoginScreenState extends State<LoginScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.zinc950,
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ScaleTransition(
-              scale: _scaleAnim,
+        child: FadeTransition(
+          opacity: _fadeAnim,
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(32),
               child: Column(
-                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // Logo
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: AppColors.emerald500,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.emerald500.withOpacity(0.3),
-                          blurRadius: 24,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
+                      color: AppColors.emerald500.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.emerald500.withValues(alpha: 0.3),
+                      ),
                     ),
-                    child: const Icon(Icons.shield, size: 48, color: Colors.white),
+                    child: const Icon(
+                      Icons.shield,
+                      size: 48,
+                      color: AppColors.emerald500,
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
+
+                  // Title
                   const Text(
                     'CaliberIA',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
-                      letterSpacing: -0.5,
+                      letterSpacing: 2,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'ACCESO RESTRINGIDO',
+                  const SizedBox(height: 8),
+                  const Text(
+                    'SISTEMA DE ANÁLISIS BALÍSTICO',
                     style: TextStyle(
                       fontSize: 10,
-                      fontWeight: FontWeight.bold,
                       color: AppColors.emerald500,
                       letterSpacing: 4,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 48),
 
                   // Email
-                  _buildLabel('EMAIL INSTITUCIONAL'),
-                  const SizedBox(height: 8),
                   TextField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.mail_outline, color: AppColors.zinc500),
-                      hintText: 'admin@admin.com',
-                      hintStyle: const TextStyle(color: AppColors.zinc700),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+                    decoration: const InputDecoration(
+                      labelText: 'Correo electrónico',
+                      labelStyle: TextStyle(color: AppColors.zinc500),
+                      prefixIcon:
+                          Icon(Icons.person_outline, color: AppColors.zinc500),
                     ),
+                    onSubmitted: (_) => _handleSubmit(),
                   ),
                   const SizedBox(height: 16),
 
                   // Password
-                  _buildLabel('CONTRASEÑA'),
-                  const SizedBox(height: 8),
                   TextField(
                     controller: _passwordController,
-                    obscureText: true,
+                    obscureText: _obscurePassword,
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.lock_outline, color: AppColors.zinc500),
-                      hintText: '••••••••',
-                      hintStyle: const TextStyle(color: AppColors.zinc700),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+                      labelText: 'Contraseña',
+                      labelStyle: const TextStyle(color: AppColors.zinc500),
+                      prefixIcon: const Icon(Icons.lock_outline,
+                          color: AppColors.zinc500),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: AppColors.zinc500,
+                        ),
+                        onPressed: () =>
+                            setState(() => _obscurePassword = !_obscurePassword),
+                      ),
                     ),
+                    onSubmitted: (_) => _handleSubmit(),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
 
                   // Error
                   if (_error != null)
@@ -152,16 +173,16 @@ class _LoginScreenState extends State<LoginScreen>
                       width: double.infinity,
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.red500.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.red500.withOpacity(0.2)),
+                        color: AppColors.red500.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                            color: AppColors.red500.withValues(alpha: 0.3)),
                       ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.error_outline, color: AppColors.red500, size: 16),
-                          const SizedBox(width: 8),
-                          Text(_error!, style: const TextStyle(color: AppColors.red500, fontSize: 12)),
-                        ],
+                      child: Text(
+                        _error!,
+                        style:
+                            const TextStyle(color: AppColors.red400, fontSize: 13),
+                        textAlign: TextAlign.center,
                       ),
                     ),
                   const SizedBox(height: 24),
@@ -169,70 +190,40 @@ class _LoginScreenState extends State<LoginScreen>
                   // Submit
                   SizedBox(
                     width: double.infinity,
-                    height: 56,
+                    height: 50,
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _handleSubmit,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.emerald500,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 4,
-                      ),
                       child: _isLoading
                           ? const SizedBox(
-                              width: 24,
-                              height: 24,
+                              width: 20,
+                              height: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
                                 color: Colors.white,
                               ),
                             )
-                          : const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Ingresar al Sistema',
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                ),
-                                SizedBox(width: 8),
-                                Icon(Icons.chevron_right, size: 20),
-                              ],
+                          : const Text(
+                              'ACCEDER AL SISTEMA',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1,
+                              ),
                             ),
                     ),
                   ),
                   const SizedBox(height: 32),
-                  Text(
-                    'USO EXCLUSIVO PARA PERITOS EN BALÍSTICA',
+
+                  // Footer
+                  const Text(
+                    'v2.0 • Investigación Académica',
                     style: TextStyle(
-                      fontSize: 9,
+                      fontSize: 11,
                       color: AppColors.zinc600,
-                      letterSpacing: 3,
-                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],
               ),
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLabel(String text) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 4),
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.bold,
-            color: AppColors.zinc500,
-            letterSpacing: 2,
           ),
         ),
       ),

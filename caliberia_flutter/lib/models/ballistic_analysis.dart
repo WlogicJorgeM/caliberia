@@ -1,8 +1,11 @@
+/// Modelo principal de análisis balístico
 class BallisticAnalysis {
   final String id;
   final int timestamp;
   final String imageBase64;
   final BallisticResults results;
+  final String aiProvider; // 'gemini' o 'ollama'
+  final int responseTimeMs;
   String notes;
 
   BallisticAnalysis({
@@ -10,6 +13,8 @@ class BallisticAnalysis {
     required this.timestamp,
     required this.imageBase64,
     required this.results,
+    this.aiProvider = 'unknown',
+    this.responseTimeMs = 0,
     this.notes = '',
   });
 
@@ -18,15 +23,21 @@ class BallisticAnalysis {
         'timestamp': timestamp,
         'imageBase64': imageBase64,
         'results': results.toJson(),
+        'aiProvider': aiProvider,
+        'responseTimeMs': responseTimeMs,
         'notes': notes,
+        '_version': 2,
       };
 
   factory BallisticAnalysis.fromJson(Map<String, dynamic> json) =>
       BallisticAnalysis(
-        id: json['id'],
-        timestamp: json['timestamp'],
-        imageBase64: json['imageBase64'],
-        results: BallisticResults.fromJson(json['results']),
+        id: json['id'] ?? '',
+        timestamp: json['timestamp'] ?? 0,
+        imageBase64: json['imageBase64'] ?? '',
+        results: BallisticResults.fromJson(
+            json['results'] is Map<String, dynamic> ? json['results'] : {}),
+        aiProvider: json['aiProvider'] ?? 'unknown',
+        responseTimeMs: json['responseTimeMs'] ?? 0,
         notes: json['notes'] ?? '',
       );
 }
@@ -49,6 +60,15 @@ class BallisticResults {
     required this.confidence,
     required this.description,
   });
+
+  /// Nivel de confianza legible
+  String get confidenceLevel {
+    if (confidence >= 0.8) return 'Alta';
+    if (confidence >= 0.5) return 'Media';
+    return 'Baja';
+  }
+
+  bool get isValidAnalysis => confidence > 0.2;
 
   Map<String, dynamic> toJson() => {
         'caliber': caliber,
@@ -80,11 +100,14 @@ class BallisticResults {
     return BallisticResults(
       caliber: (json['caliber'] ?? 'No determinado').toString(),
       ammoType: (json['ammoType'] ?? 'No determinado').toString(),
-      compatibleWeapon: (json['compatibleWeapon'] ?? 'No determinado').toString(),
-      estimatedLength: (json['estimatedLength'] ?? 'No determinado').toString(),
+      compatibleWeapon:
+          (json['compatibleWeapon'] ?? 'No determinado').toString(),
+      estimatedLength:
+          (json['estimatedLength'] ?? 'No determinado').toString(),
       possibleBrands: brands.isEmpty ? ['No determinado'] : brands,
       confidence: conf.clamp(0.0, 1.0),
-      description: (json['description'] ?? 'Análisis completado.').toString(),
+      description:
+          (json['description'] ?? 'Análisis completado.').toString(),
     );
   }
 }

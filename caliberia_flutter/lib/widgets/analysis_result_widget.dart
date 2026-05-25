@@ -47,7 +47,7 @@ class AnalysisResultWidget extends StatelessWidget {
                     const SizedBox(width: 8),
                     _badge(
                       'Confianza: ${(r.confidence * 100).toStringAsFixed(1)}%',
-                      Colors.white.withOpacity(0.15),
+                      Colors.white.withValues(alpha: 0.15),
                       Colors.white,
                     ),
                   ],
@@ -177,7 +177,7 @@ class AnalysisResultWidget extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.zinc900.withOpacity(0.5),
+        color: AppColors.zinc900.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.zinc800),
       ),
@@ -220,7 +220,7 @@ class _DataCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.zinc900.withOpacity(0.5),
+        color: AppColors.zinc900.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.zinc800),
       ),
