@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:postgres/postgres.dart';
 import 'package:dotenv/dotenv.dart';
 
@@ -11,11 +12,11 @@ class Database {
 
   Future<void> initialize() async {
     final endpoint = Endpoint(
-      host: _env['DB_HOST'] ?? 'localhost',
-      port: int.parse(_env['DB_PORT'] ?? '5432'),
-      database: _env['DB_NAME'] ?? 'caliberia_1',
-      username: _env['DB_USER'] ?? 'caliberia_1',
-      password: _env['DB_PASSWORD'] ?? '',
+      host: _env['DB_HOST'] ?? Platform.environment['DB_HOST'] ?? 'localhost',
+      port: int.parse(_env['DB_PORT'] ?? Platform.environment['DB_PORT'] ?? '5432'),
+      database: _env['DB_NAME'] ?? Platform.environment['DB_NAME'] ?? 'caliberia_1',
+      username: _env['DB_USER'] ?? Platform.environment['DB_USER'] ?? 'caliberia_1',
+      password: _env['DB_PASSWORD'] ?? Platform.environment['DB_PASSWORD'] ?? '',
     );
 
     _connection = await Connection.open(
